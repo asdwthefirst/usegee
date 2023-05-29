@@ -28,6 +28,11 @@ func newContext(req *http.Request, writer http.ResponseWriter) *Context {
 	}
 }
 
+func (c *Context) Fail(code int, err string) {
+	c.index = len(c.handlers) //短路功能，中间件中使用跳过后续中间件
+	c.JSON(code, H{"message": err})
+}
+
 func (c *Context) PostForm(key string) string {
 	return c.Req.FormValue(key)
 }

@@ -9,6 +9,7 @@ import (
 func main() {
 	engine := gee.New()
 	engine.USE(gee.Logger())
+	engine.USE(gee.Recovery())
 	engine.GET("/", func(c *gee.Context) {
 		c.String(http.StatusOK, "URL.Path = %q\n", c.Path)
 	})
@@ -30,6 +31,11 @@ func main() {
 			"username": c.PostForm("username"),
 			"password": c.PostForm("password"),
 		})
+	})
+
+	engine.GET("/panic", func(c *gee.Context) {
+		names := []string{"gee"}
+		c.String(http.StatusOK, names[100])
 	})
 
 	engine.Run(":9999")
