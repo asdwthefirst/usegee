@@ -8,6 +8,7 @@ import (
 
 func main() {
 	engine := gee.New()
+	engine.USE(gee.Logger())
 	engine.GET("/", func(c *gee.Context) {
 		c.String(http.StatusOK, "URL.Path = %q\n", c.Path)
 	})

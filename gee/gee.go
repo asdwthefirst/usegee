@@ -3,6 +3,7 @@ package gee
 import (
 	"log"
 	"net/http"
+	"strings"
 )
 
 type H map[string]interface{}
@@ -22,6 +23,7 @@ type RouterGroup struct {
 	middlewares []HandlerFunc
 	parent      *RouterGroup
 	engine      *Engine // 维护RouterGroup所属的engine
+	middleWares []HandlerFunc
 }
 
 // New is the constructor of gee.Engine
@@ -43,6 +45,10 @@ func (group *RouterGroup) Group(prefix string) *RouterGroup {
 	}
 	engine.groups = append(engine.groups, newGroup)
 	return newGroup
+}
+
+func (group *RouterGroup) USE(middleWares ...HandlerFunc) {
+	group.middleWares = append(group.middleWares, middleWares...)
 }
 
 func (group *RouterGroup) addRoute(method string, comp string, handler HandlerFunc) {
@@ -67,6 +73,13 @@ func (engine *Engine) Run(addr string) (err error) {
 }
 
 func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	var middleWares []HandlerFunc
+	for _, group := range engine.groups {
+		if strings.HasPrefix(req.URL.Path, group.prefix) {
+			middleWares = append(middleWares, group.middleWares...)
+		}
+	}
 	c := newContext(req, w)
+	c.handlers = middleWares
 	engine.router.hendle(c)
 }
